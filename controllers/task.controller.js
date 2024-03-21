@@ -4,8 +4,14 @@ const { Task } = require("../models");
 // --------------- Create Task Detail ------------------
 const createTask = catchAsync(async (req, res) => {
   try {
-    const identity = req.user;
-    const task = await Task.create({ ...req.body, userId: identity });
+    const existing = await Task.findOne({ title: req.body.title });
+    if (existing) {
+      return res.status(400).json({
+        status: "400",
+        message: "Task title already submited!",
+      });
+    }
+    const task = await Task.create({ ...req.body });
     return res.status(200).json({
       status: "200",
       message: "Task created successfully!",
@@ -43,6 +49,17 @@ const getTask = catchAsync(async (req, res) => {
 const updateTask = catchAsync(async (req, res) => {
   try {
     const taskId = req.params.id;
+    const existing = await Task.findOne({
+      title: req.body.title,
+      _id: { $ne: taskId },
+    });
+    if (existing) {
+      return res.status(400).json({
+        status: "400",
+        message: "Task title exists!",
+      });
+    }
+
     const taskDetail = await Task.findOneAndUpdate({ _id: taskId }, req.body, {
       new: true,
     });
@@ -81,11 +98,10 @@ const deleteTask = catchAsync(async (req, res) => {
 // --------------------- Get List of all tasks's ------------------
 const getList = catchAsync(async (req, res) => {
   const searchName = req.query.name;
-  const currentUser = req.user;
-  const perPage = 9; //  Number of documents to display on each page
+  const itemPerPage = req.query.itemPerPage;
+  const perPage = itemPerPage ? parseInt(itemPerPage, 10) : 6; //  Number of documents to display on each page
   const page = req.query.page ? parseInt(req.query.page, 10) : 1; // It specify the selected page number
-
-  let query = { userId: currentUser };
+  let query = {};
 
   if (searchName) {
     const searchValue = new RegExp(searchName, "i");

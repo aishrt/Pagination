@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import axios from "axios";
-import { useEffect, useState } from "react";
-import storage from "../../utils/storage";
+import { useEffect, useRef, useState } from "react";
 import { Button, InputAdornment, TextField } from "@mui/material";
 import BackdropLoader from "../../components/Loader/BackdropLoader";
 import "./protected.css";
@@ -31,7 +30,6 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 function TaskList() {
-  const token = storage.getToken();
   const [isUpdating, setUpdating] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);
   const [showText, setShowText] = useState<boolean>(false);
@@ -42,6 +40,7 @@ function TaskList() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemPerPage, setItemPerPage] = useState("");
 
   const handlePageChange = (event: any, value: any) => {
     setCurrentPage(value);
@@ -64,18 +63,22 @@ function TaskList() {
     }
   };
 
+  const handleItemPerPage = (value: any) => {
+    try {
+      setItemPerPage(value);
+    } catch (error) {
+      console.error("Error in handleSearch:", error);
+    }
+  };
+
   useEffect(() => {
     getUserSearchList();
   }, [searchTerm]);
 
   const getUserSearchList = async () => {
-    const apiUrl = `${API_URL}/task/list?name=${searchTerm}`;
+    const apiUrl = `${API_URL}/task/list?name=${searchTerm}&itemPerPage=${itemPerPage}`;
     try {
-      const response = await axios.get(`${apiUrl}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(`${apiUrl}`);
       setTaskList(response?.data?.data);
     } catch (error: any) {
       if (error.response) {
@@ -88,14 +91,10 @@ function TaskList() {
   };
   const gettaskList = async () => {
     setLoading(true);
-    let apiUrl = `${API_URL}/task/list?page=${currentPage}`;
+    let apiUrl = `${API_URL}/task/list?page=${currentPage}&itemPerPage=${itemPerPage}`;
 
     try {
-      const response = await axios.get(`${apiUrl}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(`${apiUrl}`);
       setTaskList(response?.data?.data);
       setTotalPage(response?.data?.totalPages);
       setLoading(false);
@@ -111,10 +110,8 @@ function TaskList() {
   };
 
   useEffect(() => {
-    if (token) {
-      gettaskList();
-    }
-  }, [token, isUpdating, currentPage]);
+    gettaskList();
+  }, [isUpdating, currentPage, itemPerPage]);
 
   const handleDelete = (idy: string) => {
     settaskDeleteId(idy);
@@ -148,6 +145,11 @@ function TaskList() {
     setShowText(true);
   };
 
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const handleMouseEnter = () => {
+    inputRef.current?.focus();
+  };
+
   return (
     <ContentLayout title="All Tasks">
       {isLoading ? (
@@ -157,7 +159,7 @@ function TaskList() {
           <div className="container mt-3">
             <h3>Tasks List : </h3>
             <div className="row TPOsbc">
-              <div className="col-md-9">
+              <div className="col-md-7">
                 <Button
                   onClick={() => navigate("/create-task")}
                   className="blogBttn"
@@ -166,6 +168,17 @@ function TaskList() {
                 >
                   Create Task
                 </Button>
+              </div>
+              <div className="col-md-2">
+                <TextField
+                  id="itemSize"
+                  type="number"
+                  placeholder="Item Per Page"
+                  value={itemPerPage}
+                  onChange={(e) => handleItemPerPage(e.target.value)}
+                  onMouseEnter={handleMouseEnter}
+                  inputRef={inputRef}
+                />
               </div>
               <div className="col-md-3">
                 <TextField
@@ -216,7 +229,6 @@ function TaskList() {
                               ) : null}
                             </p>
                           )}
-                          <p className="p5">{item?.dueDate}</p>
                           <p className="p3">{item?.author}</p>
                           <button
                             className="btnDelete"

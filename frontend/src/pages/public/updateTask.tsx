@@ -50,7 +50,6 @@ function UpdateTask() {
     title: string;
     author: string;
     content: string;
-    dueDate: string;
   }
 
   const {
@@ -61,18 +60,15 @@ function UpdateTask() {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      await axios.put(`${API_URL}/task/update/${task?._id}`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.put(
+        `${API_URL}/task/update/${task?._id}`,
+        data
+      );
 
-      toast.success("Data updated successfully!");
+      toast.success(`${response.data.message}`);
       navigate("/task-list");
-    } catch (error) {
-      console.error("Error:", error);
-
-      toast.error(`${error}`);
+    } catch (error: any) {
+      toast.error(`${error?.response?.data?.message}`);
     }
   };
 
@@ -132,25 +128,6 @@ function UpdateTask() {
                           minLength: {
                             value: 1,
                             message: "Author name is required",
-                          },
-                        })}
-                      />
-
-                      {errors.author && (
-                        <p className="errorText">{errors.author.message}</p>
-                      )}
-                    </div>
-                    <div>
-                      <TextField
-                        id="dueDate"
-                        defaultValue={task?.dueDate}
-                        variant="filled"
-                        type="date"
-                        {...register("dueDate", {
-                          required: "Due Date is required",
-                          minLength: {
-                            value: 1,
-                            message: "Due Date is required",
                           },
                         })}
                       />

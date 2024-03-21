@@ -18,7 +18,6 @@ interface FormData {
   title: string;
   author: string;
   content: string;
-  dueDate: string;
 }
 const Textarea = styled(BaseTextareaAutosize)(
   ({ theme }) => `
@@ -46,8 +45,9 @@ export const CreateTask = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
-      await axios.post(`${API_URL}/task/add`, data);
-      toast.success(`Task created  successfuly!`);
+      const result = await axios.post(`${API_URL}/task/add`, data);
+
+      toast.success(`${result.data.message}`);
       navigate("/task-list");
     } catch (error: any) {
       toast.error(`${error?.response?.data?.message}`);
@@ -107,25 +107,6 @@ export const CreateTask = () => {
                   )}
                 </div>
 
-                <div>
-                  <TextField
-                    id="dueDate"
-                    // label="Due Date"
-                    variant="filled"
-                    type="date"
-                    {...register("dueDate", {
-                      required: "Due Date is required",
-                      minLength: {
-                        value: 1,
-                        message: "Due Date is required",
-                      },
-                    })}
-                  />
-
-                  {errors.author && (
-                    <p className="errorText">{errors.author.message}</p>
-                  )}
-                </div>
                 <div className="mt-3">
                   <Textarea
                     aria-label="minimum height"
