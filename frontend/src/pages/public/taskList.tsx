@@ -19,6 +19,7 @@ import Stack from "@mui/material/Stack";
 import { ContentLayout } from "../../layout/ContentLayout";
 import { API_URL } from "../../config";
 import { trimText } from "../../utils/format";
+import ViewImage from "../../components/Ui/ViewImage";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -204,6 +205,7 @@ function TaskList() {
                     <>
                       <div className="col-md-4 " key={index}>
                         <div className="blogBox">
+                          <ViewImage src={item?.logo} />
                           <p className="p1">{item?.title}</p>
 
                           {showText && showId === item?.id ? (

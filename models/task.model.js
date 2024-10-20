@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const taskSchema = mongoose.Schema(
   {
+    logo: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     title: {
       type: String,
       required: true,

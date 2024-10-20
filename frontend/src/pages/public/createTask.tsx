@@ -13,11 +13,15 @@ import storage from "../../utils/storage";
 import "./protected.css";
 import { TextareaAutosize as BaseTextareaAutosize } from "@mui/base/TextareaAutosize";
 import styled from "@emotion/styled";
+import UploadFile from "../../components/Ui/UploadFile";
+import { useState } from "react";
+import { fileUpload } from "../api/fileUpload";
 
 interface FormData {
   title: string;
   author: string;
   content: string;
+  logo: string;
 }
 const Textarea = styled(BaseTextareaAutosize)(
   ({ theme }) => `
@@ -37,6 +41,19 @@ export const CreateTask = () => {
   const navigate = useNavigate();
   const token = storage.getToken();
 
+  const [file, setFile] = useState<any>();
+
+  const handleFileUpload = (fileDetails: any) => {
+    if (fileDetails?.fileName && fileDetails?.file == null) {
+      // Don't do anything in this case; it means we have not changed the image
+      console.log("Initial File Details:", fileDetails);
+      return;
+    } else {
+      console.log("Selected File Details:", fileDetails?.file);
+      setFile(fileDetails.file);
+    }
+  };
+
   const {
     register,
     handleSubmit,
@@ -45,6 +62,15 @@ export const CreateTask = () => {
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
+      let uploadedFile: any = "";
+
+      if (file) {
+        const imgResp = await fileUpload(file);
+        uploadedFile = imgResp;
+      }
+
+      data.logo = uploadedFile;
+
       const result = await axios.post(`${API_URL}/task/add`, data);
 
       toast.success(`${result.data.message}`);
@@ -72,6 +98,14 @@ export const CreateTask = () => {
                 autoComplete="off"
               >
                 <div>
+                  <UploadFile
+                    label="Upload a file"
+                    width={110}
+                    onFileUpload={handleFileUpload}
+                    showFileName={false}
+                  />
+                </div>{" "}
+                <div>
                   <TextField
                     id="title"
                     {...register("title", { required: true })}
@@ -83,7 +117,6 @@ export const CreateTask = () => {
                     <p className="errorText">Title is required.</p>
                   )}
                 </div>
-
                 <div>
                   <TextField
                     id="author"
@@ -106,7 +139,6 @@ export const CreateTask = () => {
                     <p className="errorText">{errors.author.message}</p>
                   )}
                 </div>
-
                 <div className="mt-3">
                   <Textarea
                     aria-label="minimum height"
@@ -119,7 +151,6 @@ export const CreateTask = () => {
                     <p className="errorText">Content is required.</p>
                   )}
                 </div>
-
                 <div className="make-center">
                   <Button
                     className={clsx("mt-4")}
