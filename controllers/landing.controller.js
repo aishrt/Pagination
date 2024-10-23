@@ -45,7 +45,7 @@ const landing = (req, res) => {
 const upload = (req, res) => {
   try {
     if (req.file) {
-      const data = `${process.env.BACKEND_URL}/${req.file.filename}`;
+      const data = `${process.env.BACKEND_URL}/uploads/${req.file.filename}`;
       return res.status(200).json({
         status: 200,
         message: "Image uploaded successfully",
